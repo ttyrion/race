@@ -16,13 +16,13 @@ const BG_IMG_TREE = 'images/background/trees.png'
 export default class BackGround {
     constructor(ctx) {
         this.ctx = ctx;
-        this.sprites = [new Sprite(BG_IMG_SKY, screenWidth, screenHeight / 3),
-            new Sprite(BG_IMG_HILL, screenWidth, screenHeight / 3),
-            new Sprite(BG_IMG_TREE, screenWidth, screenHeight / 3)];
+        this.sprites = [new Sprite(BG_IMG_SKY, screenWidth, screenHeight / 2),
+            new Sprite(BG_IMG_HILL, screenWidth, screenHeight / 2),
+            new Sprite(BG_IMG_TREE, screenWidth, screenHeight / 2)];
         // const sky = 0;
         // const hill = 1;
         // const tree = 1;
-        this.road = new Road(ctx, 0, screenHeight / 3, screenWidth, screenHeight * 2 / 3);
+        this.road = new Road(ctx, 0, screenHeight / 2, screenWidth, screenHeight / 2);
         this.top = 0
         this.road.reset()
     }

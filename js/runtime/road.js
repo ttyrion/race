@@ -5,7 +5,7 @@ let databus = new DataBus()
 /**
  * 一条路边指示带在Z方向的宽度
  */
-const _segmentLength = 90;
+const _segmentLength = 200;
 /**
  * 要画多少条segment
  */
@@ -24,8 +24,8 @@ const _segmentsPerRumble = 2;
  */
 const _densityOfFog = 5;
 const _roadWidth = 600;
-const _fieldOfView = 90;
-let _cameraHeight = 300;
+const _fieldOfView = 100;
+let _cameraHeight = 200;
 const _cameraDepth = 1 / Math.tan((_fieldOfView / 2) * Math.PI / 180);
 
 const _COLORS = {
@@ -54,8 +54,8 @@ export default class Road extends Sprite {
          */
         this.distance = 0;
         this.speed = 0;
-        this.maxSpeed = 4000;
-        this.acceleration = 30;
+        this.maxSpeed = 40000;
+        this.acceleration = 80;
         this.timestamp = new Date().valueOf();
 
         this.segments = [];
@@ -79,6 +79,14 @@ export default class Road extends Sprite {
 
     render() {
         /**
+         * 清楚起点线标记，以免赛道重复的同时，重复渲染出起点线
+         */
+        if (this.startFlagSet && this.distance > 4 * _segmentLength && this.segments.length > 4) {
+            this.segments[4].color = _COLORS.DARK;
+            this.startFlagSet = false;
+        }
+
+        /**
          * 赛道是重复的
          */
         let distance = this.distance;
@@ -90,22 +98,22 @@ export default class Road extends Sprite {
         this.ctx.clearRect(this.x, this.y, this.width, this.height);
         this.renderFog(0.2);
         let baseSegment = this.findSegment(distance);
-        let maxy = this.height;
+        let maxy = this.height + this.y;
         let firstRenderedSegment = null;
         for (let n = 0; n < _segmentsToDraw; n++) {
             let segment = this.segments[(baseSegment.index + n) % this.segments.length];
             segment.looped = segment.index < baseSegment.index;
             segment.fog = Util.exponentialFog(n / _segmentsToDraw, _densityOfFog);
 
-            Util.project(segment.p1, 0, _cameraHeight, distance, _cameraDepth, this.width, this.height, _roadWidth);
-            Util.project(segment.p2, 0, _cameraHeight, distance, _cameraDepth, this.width, this.height, _roadWidth);
+            Util.project(segment.p1, 0, _cameraHeight, distance - (segment.looped ? this.trackLength : 0), _cameraDepth, this.width, this.height + this.y, _roadWidth);
+            Util.project(segment.p2, 0, _cameraHeight, distance - (segment.looped ? this.trackLength : 0), _cameraDepth, this.width, this.height + this.y, _roadWidth);
             if (segment.leftTree) {
-                Util.project(segment.pLeftTreeLT, 0, _cameraHeight, distance - (segment.looped ? this.trackLength : 0), _cameraDepth, this.width, this.height, _roadWidth);
-                Util.project(segment.pLeftTreeRB, 0, _cameraHeight, distance - (segment.looped ? this.trackLength : 0), _cameraDepth, this.width, this.height, _roadWidth);
+                Util.project(segment.pLeftTreeLT, 0, _cameraHeight, distance - (segment.looped ? this.trackLength : 0), _cameraDepth, this.width, this.height + this.y, _roadWidth);
+                Util.project(segment.pLeftTreeRB, 0, _cameraHeight, distance - (segment.looped ? this.trackLength : 0), _cameraDepth, this.width, this.height + this.y, _roadWidth);
             }
             if (segment.rightTree) {
-                Util.project(segment.pRightTreeLT, 0, _cameraHeight, distance - (segment.looped ? this.trackLength : 0), _cameraDepth, this.width, this.height, _roadWidth);
-                Util.project(segment.pRightTreeRB, 0, _cameraHeight, distance - (segment.looped ? this.trackLength : 0), _cameraDepth, this.width, this.height, _roadWidth);
+                Util.project(segment.pRightTreeLT, 0, _cameraHeight, distance - (segment.looped ? this.trackLength : 0), _cameraDepth, this.width, this.height + this.y, _roadWidth);
+                Util.project(segment.pRightTreeRB, 0, _cameraHeight, distance - (segment.looped ? this.trackLength : 0), _cameraDepth, this.width, this.height + this.y, _roadWidth);
             }
 
             if (segment.p1.camera.z <= _cameraDepth || segment.p2.screen.y >= maxy) {// behind us or clip by (already rendered) segment
@@ -113,14 +121,11 @@ export default class Road extends Sprite {
             }
             this.renderSegment(segment);
             maxy = segment.p2.screen.y;
-            // if (firstRenderedSegment == null) {
-            //     firstRenderedSegment = segment.index;
-            // }
         }
     }
 
     renderSegment(segment) {
-        if (segment.p2.screen.y > this.height) {
+        if (segment.p2.screen.y > this.height + this.y) {
            return;
         }
 
@@ -223,12 +228,12 @@ export default class Road extends Sprite {
                 p2: { world: { z: (n) * _segmentLength }, camera: {}, screen: {} },
                 color: n % 2 ? _COLORS.DARK : _COLORS.LIGHT,
             };
-            if (!(n % 8)) {
+            if (!(n % 4)) {
                 segment.leftTree = "images/background/tree" + leftTreeIndex + ".png";
                 segment.pLeftTreeLT = { world: { x: -_roadWidth / 2 - 300, y: _cameraHeight / 2, z: (n) * _segmentLength }, camera: { }, screen: { } };
                 segment.pLeftTreeRB = { world: { x: -_roadWidth / 2 - 100, z: (n) * _segmentLength }, camera: { }, screen: { } };
             }
-            if (!(n % 6)) {
+            if (!(n % 3)) {
                 segment.rightTree = "images/background/tree" + rightTreeIndex + ".png";
                 segment.pRightTreeLT = { world: { x: _roadWidth / 2 + 100, y: _cameraHeight / 2, z: (n) * _segmentLength }, camera: {}, screen: {} };
                 segment.pRightTreeRB = { world: { x: _roadWidth / 2 + 300, z: (n) * _segmentLength }, camera: {}, screen: {} };
@@ -240,14 +245,7 @@ export default class Road extends Sprite {
          * 起点标线
          */
         this.segments[4].color = _COLORS.START;
-        //this.segments[this.findSegment(0).index + 3].color = _COLORS.START;
-
-        /**
-         * 终点标线
-         */
-        // for (var n = 0; n < _segmentsPerRumble; n++) {
-        //     this.segments[this.segments.length - 1 - n].color = _COLORS.FINISH;
-        // }
+        this.startFlagSet = true;
 
         /**
          * 实际赛道长度，赛道被首尾相接
