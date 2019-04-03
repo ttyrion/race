@@ -22,7 +22,7 @@ const _segmentsPerRumble = 2;
 /**
  * 雾的浓度
  */
-const _densityOfFog = 5;
+const _densityOfFog = 50;
 const _roadWidth = 600;
 const _fieldOfView = 100;
 let _cameraHeight = 200;
@@ -96,7 +96,7 @@ export default class Road extends Sprite {
             distance += this.trackLength;
         
         this.ctx.clearRect(this.x, this.y, this.width, this.height);
-        this.renderFog(0.2);
+        this.renderFog(this.x, this.y, this.width, this.height, 0.5);
         let baseSegment = this.findSegment(distance);
         let maxy = this.height + this.y;
         let firstRenderedSegment = null;
@@ -157,6 +157,22 @@ export default class Road extends Sprite {
                         { x: segment.p2.screen.x - segment.p2.screen.w, y: segment.p2.screen.y }, 
                         segment.color.road);
 
+        if (segment.color.lane) {
+            let lanew1 = segment.p1.screen.w * 2 / _lanesOfRoad;
+            let lanew2 = segment.p2.screen.w * 2 / _lanesOfRoad;
+            let lanex1 = segment.p1.screen.x - segment.p1.screen.w + lanew1;
+            let lanex2 = segment.p2.screen.x - segment.p2.screen.w + lanew2;
+            for (let lane = 1; lane < _lanesOfRoad; lanex1 += lanew1, lanex2 += lanew2, lane++) {
+                this.renderPolygon({ x: lanex1 - l1 / 2, y: segment.p1.screen.y },
+                    { x: lanex1 + l1 / 2, y: segment.p1.screen.y },
+                    { x: lanex2 + l2 / 2, y: segment.p2.screen.y },
+                    { x: lanex2 - l2 / 2, y: segment.p2.screen.y },
+                    segment.color.lane);
+            }
+        }
+
+        // this.renderFog(0, segment.p1.screen.y, this.width, segment.p2.screen.y - segment.p1.screen.y, segment.fog);
+        
         if (segment.leftTree) {
             let treeWidth = segment.pLeftTreeRB.screen.x - segment.pLeftTreeLT.screen.x;
             let treeHeight = segment.pLeftTreeLT.screen.y - segment.pLeftTreeRB.screen.y;
@@ -174,20 +190,6 @@ export default class Road extends Sprite {
             let tree = new Sprite(segment.leftTree, treeWidth, treeHeight, treeX, treeY);
             tree.drawToCanvas(this.ctx);
         }
-
-        if (segment.color.lane) {
-            let lanew1 = segment.p1.screen.w * 2 / _lanesOfRoad;
-            let lanew2 = segment.p2.screen.w * 2 / _lanesOfRoad;
-            let lanex1 = segment.p1.screen.x - segment.p1.screen.w + lanew1;
-            let lanex2 = segment.p2.screen.x - segment.p2.screen.w + lanew2;
-            for (let lane = 1; lane < _lanesOfRoad; lanex1 += lanew1, lanex2 += lanew2, lane++) {
-                this.renderPolygon({ x: lanex1 - l1 / 2, y: segment.p1.screen.y },
-                        { x: lanex1 + l1 / 2, y: segment.p1.screen.y },
-                        { x: lanex2 + l2 / 2, y: segment.p2.screen.y },
-                        { x: lanex2 - l2 / 2, y: segment.p2.screen.y },
-                        segment.color.lane);
-            }
-        }
     }
 
     renderPolygon(p1, p2, p3, p4, color) {
@@ -204,11 +206,11 @@ export default class Road extends Sprite {
     /**
      * 赛道上的雾的效果
      */
-    renderFog(fog) {
+    renderFog(x, y, width, height, fog) {
         if (fog < 1) {
             this.ctx.globalAlpha = (1 - fog);
             this.ctx.fillStyle = _COLORS.FOG;
-            this.ctx.fillRect(this.x, this.y, this.width, this.height);
+            this.ctx.fillRect(x, y, width, height);
             this.ctx.globalAlpha = 1;
         }
     }
