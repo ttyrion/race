@@ -4,6 +4,8 @@ import DataBus from '../databus'
 const screenWidth = window.innerWidth
 const screenHeight = window.innerHeight
 
+const _margin = 90;
+
 // 玩家相关常量设置
 const PLAYER_IMG_SRC = 'images/hero.png'
 const PLAYER_WIDTH = 80
@@ -86,6 +88,9 @@ export default class Player extends Sprite {
         canvas.addEventListener('touchmove', ((e) => {
             e.preventDefault()
             let x = e.touches[0].clientX;
+            if (x < _margin || x > screenWidth - _margin) {
+                return;
+            }
             let y = e.touches[0].clientY
             this.setAirPosAcrossFingerPosZ(x, y)
         }).bind(this))
