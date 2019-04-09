@@ -18,10 +18,10 @@ export default class BackGround {
         this.ctx = ctx;
         this.sprites = [new Sprite(BG_IMG_SKY, screenWidth, screenHeight / 2),
             // new Sprite(BG_IMG_HILL, screenWidth, screenHeight / 2),
-            new Sprite(BG_IMG_TREE, screenWidth, screenHeight / 2)];
+            new Sprite(BG_IMG_TREE, screenWidth, screenHeight / 2)
+            ];
         this.road = new Road(ctx, 0, screenHeight / 2, screenWidth, screenHeight / 2);
-        this.top = 0
-        this.road.reset()
+        this.road.reset(true);
     }
 
     update() {

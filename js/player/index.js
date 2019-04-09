@@ -8,8 +8,8 @@ const _margin = 90;
 
 // 玩家相关常量设置
 const PLAYER_IMG_SRC = 'images/hero.png'
-const PLAYER_WIDTH = 80
-const PLAYER_HEIGHT = 56
+const PLAYER_WIDTH = 100
+const PLAYER_HEIGHT = 70
 
 let databus = new DataBus()
 
@@ -19,7 +19,7 @@ export default class Player extends Sprite {
         this.ctx = ctx;
         // 玩家默认处于屏幕底部居中位置
         this.x = screenWidth / 2 - this.width / 2 + 50
-        this.y = screenHeight - this.height - 150
+        this.y = screenHeight - this.height - 100
         this.z = 0;
 
         // 用于在手指移动的时候标识手指是否已经在飞机上了
@@ -87,6 +87,9 @@ export default class Player extends Sprite {
 
         canvas.addEventListener('touchmove', ((e) => {
             e.preventDefault()
+            if (databus.gameOver) { 
+                return;
+            }
             let x = e.touches[0].clientX;
             if (x < _margin || x > screenWidth - _margin) {
                 return;
